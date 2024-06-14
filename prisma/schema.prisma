@@ -1,0 +1,139 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["omitApi"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String      @id @unique @default(uuid())
+  createdAt     DateTime    @default(now())
+  email         String      @unique
+  password      String
+  username      String      @unique
+  image         String?
+  profile       Profile?
+  posts         Post[]
+  comments      Comment[]
+  likes         Like[]
+  groupUser     GroupUser[]
+  following     Follow[]    @relation("follower")
+  followers     Follow[]    @relation("following")
+  createdGroups Group[]
+
+  @@index([email])
+}
+
+model Profile {
+  onBoardingCompleted Boolean  @default(false)
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId              String   @id
+  name                String?
+  journey             String?
+  ambitions           String[]
+  tech                String[]
+  bio                 String?
+  githubLink          String?
+  githubHandle        String?
+  linkedinLink        String?
+  linkedinHandle      String?
+  xProfileLink        String?
+  xProfileHandle      String?
+  instagramLink       String?
+  instagramHandle     String?
+}
+
+model Follow {
+  follower    User   @relation("follower", fields: [followerId], references: [id])
+  followerId  String
+  following   User   @relation("following", fields: [followingId], references: [id])
+  followingId String
+
+  @@id([followerId, followingId])
+}
+
+model Post {
+  id               String    @id @default(uuid())
+  author           User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId         String
+  title            String
+  createType       PostType  @default(STANDARD)
+  group            Group?    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId          String?
+  coverImage       String?
+  audioFile        String?
+  audioTitle       String?
+  meetupLocation   String?
+  meetupDate       DateTime?
+  tinyContent      String?
+  createdAt        DateTime  @default(now())
+  comments         Comment[]
+  interestTechTags Tag[]
+  likes            Like[]
+  views            Int       @default(0)
+}
+
+model Like {
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId String
+
+  @@id([userId, postId])
+}
+
+model Tag {
+  id   String @id @default(uuid())
+  name String @unique
+  post Post[]
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId  String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+}
+
+model Group {
+  id           String      @id @default(uuid())
+  name         String
+  profileImage String
+  coverImage   String?
+  bio          String?
+  posts        Post[]
+  createdAt    DateTime    @default(now())
+  groupUser    GroupUser[]
+  creatorId    String
+  creator      User        @relation(fields: [creatorId], references: [id])
+
+  @@unique([name, creatorId])
+}
+
+model GroupUser {
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  String
+  group   Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId String
+  isAdmin Boolean @default(false)
+
+  @@id([userId, groupId])
+}
+
+enum PostType {
+  MEETUP
+  PODCAST
+  STANDARD
+}
