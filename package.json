@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon server.ts",
-    "prepare": "husky"
+    "prepare": "husky",
+    "build": "tsc",
+    "run": "node dist/server.js"
   },
   "keywords": [],
   "author": "",
