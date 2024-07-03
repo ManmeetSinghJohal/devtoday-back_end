@@ -10,7 +10,7 @@ import groupRouter from "./routes/group";
 
 const app = express();
 const corsOptions = {
-  origin: "http://localhost:3000",
+  origin: process.env.CLIENT_URL,
 };
 const PORT = process.env.PORT;
 app.use(cors(corsOptions));
