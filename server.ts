@@ -1,3 +1,4 @@
+import dotenv from "dotenv";
 import { Request, Response } from "express";
 import cors from "cors";
 import express from "express";
@@ -8,11 +9,15 @@ import postRouter from "./routes/post";
 import profileRouter from "./routes/profile";
 import groupRouter from "./routes/group";
 
+dotenv.config();
+
 const app = express();
 const corsOptions = {
   origin: process.env.CLIENT_URL,
 };
 const PORT = process.env.PORT;
+console.log("CORS Options:", corsOptions); // Add this line to debug
+
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
