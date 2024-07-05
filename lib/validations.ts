@@ -14,6 +14,14 @@ export const authSchema = z.object({
 
 export const userRegisterSchema = authSchema.required();
 
+export const userRegisterSocialSchema = z.object({
+  name: z
+    .string({ required_error: "is required" })
+    .min(4, { message: "must be at least 4 characters long." })
+    .max(20),
+  email: z.string({ required_error: "is required" }).email("must be valid"),
+});
+
 export const userLoginSchema = authSchema.omit({ username: true }).required();
 
 export const emailSchema = authSchema.pick({ email: true });
