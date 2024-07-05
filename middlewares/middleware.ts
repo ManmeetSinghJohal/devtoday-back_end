@@ -30,6 +30,7 @@ export function validate(schema: AnyZodObject, type: ValidationType) {
       schema.parse(data);
       next();
     } catch (error) {
+      console.error("error", error);
       if (error instanceof ZodError) {
         const errorMessages = error.errors.map((issue) => {
           const label = issue.path.length > 1 ? issue.path[1] : issue.path[0];
