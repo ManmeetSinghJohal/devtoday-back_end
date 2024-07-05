@@ -7,6 +7,7 @@ import {
   emailSchema,
   userLoginSchema,
   userRegisterSchema,
+  userRegisterSocialSchema,
 } from "../lib/validations";
 import { TypedRequestBody } from "zod-express-middleware";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
@@ -53,6 +54,45 @@ router.post(
   },
 );
 
+//register a new user using Github or Google details
+router.post(
+  "/register/social",
+  validate(userRegisterSocialSchema, ValidationType.BODY),
+  async (
+    req: TypedRequestBody<typeof userRegisterSocialSchema>,
+    res: Response,
+  ) => {
+    const { name: username, email } = req.body;
+    try {
+      await prisma.user.create({
+        data: {
+          username,
+          email: email.toLowerCase(),
+          profile: {
+            create: {
+              onBoardingCompleted: false,
+            },
+          },
+        },
+      });
+      res
+        .status(StatusCodes.CREATED)
+        .json({ message: "User created successfully" });
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        if (error.code === "P2002") {
+          return res
+            .status(StatusCodes.CONFLICT)
+            .json({ message: "Error user already exists" });
+        }
+      }
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({ message: "Internal server error" });
+    }
+  },
+);
+
 //login with email address and password
 router.post(
   "/login",
@@ -70,9 +110,11 @@ router.post(
           .status(StatusCodes.BAD_REQUEST)
           .json({ message: "No user found" });
       }
+      const storedPassword = userFound.password;
+
       const isAuthenticated = await bcrypt.compare(
         password,
-        userFound.password,
+        storedPassword || "",
       );
       if (!isAuthenticated) {
         return res
