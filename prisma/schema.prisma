@@ -19,7 +19,7 @@ model User {
   createdAt     DateTime    @default(now())
   email         String      @unique
   password      String?
-  username      String      @unique
+  username      String      
   image         String?
   profile       Profile?
   posts         Post[]
