@@ -23,6 +23,26 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 const router = Router();
 
+// GET ALL GROUPS
+router.get("/", async (_req, res: Response) => {
+  try {
+    const groups = await prisma.group.findMany();
+    return res.status(StatusCodes.OK).json(groups);
+  } catch (error) {
+    console.error("Error fetching groups:", error);
+
+    if (error instanceof PrismaClientKnownRequestError) {
+      return res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({ message: "Database error" });
+    }
+
+    return res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: "Internal server error" });
+  }
+});
+
 router.post(
   "/create",
   validate(groupSchema, ValidationType.BODY),
