@@ -63,11 +63,15 @@ router.post(
     res: Response,
   ) => {
     const { name: username, email } = req.body;
+    const userEmail = email.toLowerCase();
+    // console.log("email", userEmail);
+    // console.log("username", username);
+
     try {
       await prisma.user.create({
         data: {
+          email: userEmail,
           username,
-          email: email.toLowerCase(),
           profile: {
             create: {
               onBoardingCompleted: false,
@@ -75,6 +79,7 @@ router.post(
           },
         },
       });
+
       res
         .status(StatusCodes.CREATED)
         .json({ message: "User created successfully" });
@@ -83,9 +88,10 @@ router.post(
         if (error.code === "P2002") {
           return res
             .status(StatusCodes.CONFLICT)
-            .json({ message: "Error user already exists" });
+            .json({ message: "Error: User already exists" });
         }
       }
+      console.error("Error creating user:", error);
       res
         .status(StatusCodes.INTERNAL_SERVER_ERROR)
         .json({ message: "Internal server error" });
