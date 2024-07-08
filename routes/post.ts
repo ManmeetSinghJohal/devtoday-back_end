@@ -1,4 +1,4 @@
-import { Router, Response } from "express";
+import { Router, Response, Request } from "express";
 import { prisma } from "../lib/prisma";
 import { StatusCodes } from "http-status-codes";
 import {
@@ -15,7 +15,68 @@ import {
 } from "zod-express-middleware";
 import { ZodAny } from "zod";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { PostType } from "@prisma/client";
 const router = Router();
+
+// Get all posts
+router.get("/", async (req: Request, res: Response) => {
+  try {
+    const posts = await prisma.post.findMany({
+      include: {
+        interestTechTags: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+    return res.status(StatusCodes.OK).json(posts);
+  } catch (error) {
+    console.error("Error fetching posts:", error);
+
+    if (error instanceof PrismaClientKnownRequestError) {
+      return res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({ message: "Database error" });
+    }
+
+    return res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: "Internal server error" });
+  }
+});
+
+// Get posts by type
+router.get("/:type", async (req: Request, res: Response) => {
+  const type = req.params.type as PostType;
+  try {
+    const posts = await prisma.post.findMany({
+      where: {
+        createType: type,
+      },
+      include: {
+        interestTechTags: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+    return res.status(StatusCodes.OK).json(posts);
+  } catch (error) {
+    console.error("Error fetching posts:", error);
+
+    if (error instanceof PrismaClientKnownRequestError) {
+      return res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({ message: "Database error" });
+    }
+
+    return res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: "Internal server error" });
+  }
+});
 
 //get a specific post with the post's id.
 router.get(
