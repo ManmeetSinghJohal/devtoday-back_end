@@ -1,6 +1,7 @@
 import { Router, Response, Request } from "express";
 import { prisma } from "../lib/prisma";
 import { StatusCodes } from "http-status-codes";
+import { Prisma } from "@prisma/client";
 import {
   idSchema,
   likerIdSchema,
@@ -47,7 +48,7 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 // Get posts by type
-router.get("/:type", async (req: Request, res: Response) => {
+router.get("/type/:type", async (req: Request, res: Response) => {
   const type = req.params.type as PostType;
   try {
     const posts = await prisma.post.findMany({
@@ -104,7 +105,20 @@ router.get(
       }
       return res.status(StatusCodes.OK).json(post);
     } catch (error) {
-      console.error(error);
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        console.error("Prisma Known Error:", error.message);
+        console.error("Code:", error.code);
+      } else if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        console.error("Prisma Unknown Error:", error.message);
+      } else if (error instanceof Prisma.PrismaClientValidationError) {
+        console.error("Prisma Validation Error:", error.message);
+      } else if (error instanceof Error) {
+        console.error("General Error:", error.message);
+        console.error("Stack trace:", error.stack);
+      } else {
+        console.error("Unexpected error:", error);
+      }
+
       return res
         .status(StatusCodes.INTERNAL_SERVER_ERROR)
         .json({ message: "Internal server error" });
