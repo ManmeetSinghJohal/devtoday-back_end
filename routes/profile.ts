@@ -3,12 +3,57 @@ import { Router, Response } from "express";
 import { prisma } from "../lib/prisma";
 import { StatusCodes } from "http-status-codes";
 import { validate, ValidationType } from "../middlewares/middleware";
-import { onBoardingSchema, idSchema, profileSchema } from "../lib/validations";
+import {
+  onBoardingSchema,
+  idSchema,
+  profileSchema,
+  userSchema,
+} from "../lib/validations";
 import { TypedRequest, TypedRequestBody } from "zod-express-middleware";
 import { ZodAny } from "zod";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 const router = Router();
+
+//update user profile image
+router.patch(
+  "/profile-image/:id",
+  validate(idSchema, ValidationType.PARAMS),
+  validate(userSchema, ValidationType.BODY),
+  async (
+    req: TypedRequest<typeof idSchema, ZodAny, typeof userSchema>,
+    res: Response,
+  ) => {
+    const id = req.params.id;
+
+    try {
+      const { image } = req.body;
+
+      await prisma.user.update({
+        where: { id },
+        data: {
+          image,
+        },
+      });
+
+      return res
+        .status(StatusCodes.OK)
+        .json({ message: "Profile image updated" });
+    } catch (error) {
+      console.error(error);
+      if (error instanceof PrismaClientKnownRequestError) {
+        if (error.code === "P2025") {
+          return res
+            .status(StatusCodes.NOT_FOUND)
+            .json({ message: "User to update does not exist" });
+        }
+      }
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({ message: "Internal server error" });
+    }
+  },
+);
 
 //update user with onboarding information
 router.post(
