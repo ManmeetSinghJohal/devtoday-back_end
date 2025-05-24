@@ -118,6 +118,10 @@ export const profileSchema = z.object({
   instagramHandle: z.string().optional(),
 });
 
+export const userSchema = z.object({
+  image: z.string(),
+});
+
 export const likerIdSchema = z.object({
   likerId: z.string({ required_error: "is required" }).length(36, {
     message: "Not a valid ID",
