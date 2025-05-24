@@ -70,22 +70,24 @@ router.get(
 
     try {
       const user = await prisma.user.findUnique({
-        where: {
-          id,
-        },
-        omit: {
-          password: true,
-        },
-        include: {
+        where: { id },
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          image: true,
           profile: true,
           posts: {
             orderBy: {
-              createdAt: "desc", // Order posts by createdAt in descending order
+              createdAt: "desc",
             },
-            take: 3, // Take only the latest three posts
+            take: 3,
           },
           _count: {
-            select: { followers: true, following: true },
+            select: {
+              followers: true,
+              following: true,
+            },
           },
           followers: {
             where: {
